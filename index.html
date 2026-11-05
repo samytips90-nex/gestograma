@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Gestograma | Samynex</title>
+<meta name="theme-color" content="#101E32">
+<meta name="description" content="Gestograma con fecha de evaluación editable. Samynex.">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<style>
+:root{
+  --bg:#EAF1F4; --surface:#FFFFFF; --ink:#18303B; --muted:#5A7280; --line:#C9D8DF;
+  --accent:#16899A; --accent-soft:#D3F1F5; --navy:#101E32; --turq:#27B7C8;
+  --t1:#9CCBE0; --t2:#A9D6A3; --t3:#F3BD86; --ring:#DCE7EC; --warn:#9A4A00; --warn-bg:#FFF1DE;
+  color-scheme: light;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0B1624; --surface:#14233A; --ink:#E4EEF2; --muted:#93AAB5; --line:#283C55;
+    --accent:#27B7C8; --accent-soft:#123A42;
+    --t1:#3E7894; --t2:#4C8547; --t3:#A5703C; --ring:#22363F; --warn:#FFC98A; --warn-bg:#3A2A14;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0B1624; --surface:#14233A; --ink:#E4EEF2; --muted:#93AAB5; --line:#283C55;
+  --accent:#27B7C8; --accent-soft:#123A42;
+  --t1:#3E7894; --t2:#4C8547; --t3:#A5703C; --ring:#22363F; --warn:#FFC98A; --warn-bg:#3A2A14;
+  color-scheme: dark;
+}
+*,*::before,*::after{box-sizing:inherit}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--ink);
+  font-family:"Atkinson Hyperlegible",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  font-size:17px;line-height:1.45;-webkit-text-size-adjust:100%}
+main{max-width:560px;margin:0 auto;padding:18px 16px 40px}
+h1{font-size:1.5rem;margin:4px 0 2px;letter-spacing:-.01em}
+.brand{display:flex;align-items:center;gap:12px;background:#101E32;color:#fff;border-radius:16px;padding:12px 14px;margin-bottom:16px}
+.brand svg{flex:none;width:46px;height:46px}
+.brand-name{display:block;font-size:1.25rem;font-weight:700;letter-spacing:.01em}
+.brand-tag{display:block;font-size:.85rem;color:#27B7C8}
+.signature{margin-top:14px;padding-top:14px;border-top:1px solid var(--line);display:flex;align-items:center;gap:10px;color:var(--muted);font-size:.85rem}
+.signature svg{width:28px;height:28px;flex:none}
+.signature b{color:var(--ink)}
+.sub{color:var(--muted);margin:0 0 14px;font-size:.95rem}
+
+.wheel{display:block;width:100%;max-width:420px;margin:0 auto;height:auto}
+.wheel text{font-family:inherit;fill:var(--ink)}
+.wk{font-size:9px}
+.dt{font-size:8.5px;fill:var(--muted)!important}
+.center-eg{font-size:34px;font-weight:700}
+.center-lbl{font-size:10.5px;fill:var(--muted)!important}
+.pointer{transition:transform .5s cubic-bezier(.3,.7,.2,1);transform-origin:180px 180px}
+@media (prefers-reduced-motion:reduce){.pointer{transition:none}}
+
+.method{display:flex;gap:6px;background:var(--ring);padding:4px;border-radius:12px;margin:16px 0 12px}
+.method button{flex:1;border:0;background:transparent;color:var(--ink);font:inherit;font-size:.95rem;
+  padding:9px 6px;border-radius:9px;cursor:pointer}
+.method button[aria-pressed="true"]{background:var(--surface);font-weight:700;box-shadow:0 1px 2px rgba(0,0,0,.12)}
+
+.fields{background:var(--surface);border-radius:16px;padding:6px 14px;border:1px solid var(--line)}
+.field{display:grid;grid-template-columns:1fr;gap:4px;padding:10px 0;border-bottom:1px solid var(--line)}
+.field:last-child{border-bottom:0}
+.field label{font-weight:700;font-size:.95rem}
+.field .hint{color:var(--muted);font-size:.82rem}
+.row{display:flex;gap:8px;align-items:center}
+input[type=date],input[type=number]{flex:1;min-width:0;font:inherit;color:var(--ink);background:var(--bg);
+  border:1px solid var(--line);border-radius:10px;padding:10px 10px;min-height:46px}
+input[type=number]{max-width:90px}
+input:focus-visible,button:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.btn{font:inherit;font-size:.92rem;border:1px solid var(--accent);background:transparent;color:var(--accent);
+  border-radius:10px;padding:10px 12px;min-height:46px;cursor:pointer;white-space:nowrap}
+.btn.solid{background:var(--accent);color:#fff;border-color:var(--accent)}
+.unit{color:var(--muted);font-size:.9rem}
+.hidden{display:none!important}
+
+.alert{margin:12px 0 0;padding:10px 12px;border-radius:10px;background:var(--warn-bg);color:var(--warn);font-size:.92rem}
+
+.result{margin:18px 0 6px;display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.result .big{font-size:2.6rem;font-weight:700;line-height:1;color:var(--accent);font-variant-numeric:tabular-nums}
+.result .txt{font-size:1.05rem}
+
+dl.data{margin:10px 0 0;background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:2px 14px}
+dl.data div{display:flex;justify-content:space-between;gap:12px;padding:11px 0;border-bottom:1px solid var(--line)}
+dl.data div:last-child{border-bottom:0}
+dl.data dt{color:var(--muted);font-size:.93rem}
+dl.data dd{margin:0;font-weight:700;text-align:right;font-variant-numeric:tabular-nums}
+
+h2{font-size:1.1rem;margin:24px 0 8px}
+ol.timeline{list-style:none;margin:0;padding:0 0 0 18px;border-left:2px solid var(--line)}
+ol.timeline li{position:relative;padding:4px 0 12px 8px}
+ol.timeline li::before{content:"";position:absolute;left:-25px;top:10px;width:12px;height:12px;border-radius:50%;
+  background:var(--surface);border:2px solid var(--line)}
+ol.timeline li.done::before{background:var(--accent);border-color:var(--accent)}
+ol.timeline li.now::before{background:var(--surface);border-color:var(--accent);box-shadow:0 0 0 4px var(--accent-soft)}
+ol.timeline b{display:block}
+ol.timeline span{color:var(--muted);font-size:.9rem}
+
+.legend{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;font-size:.85rem;color:var(--muted);margin-top:4px}
+.legend i{display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:5px;vertical-align:-1px}
+.foot{color:var(--muted);font-size:.8rem;margin-top:22px}
+</style>
+</head>
+<body>
+<main>
+  <header class="brand">
+    <svg viewBox="0 0 48 48" aria-hidden="true"><rect x="1" y="1" width="46" height="46" rx="11" fill="#101E32" stroke="#27B7C8" stroke-width="2"/><text x="7" y="34" font-family="Atkinson Hyperlegible,system-ui,sans-serif" font-size="26" font-weight="700" fill="#FFFFFF">S</text><text x="23" y="34" font-family="Atkinson Hyperlegible,system-ui,sans-serif" font-size="26" font-weight="700" fill="#27B7C8">N</text></svg>
+    <div><span class="brand-name">Samynex</span><span class="brand-tag">Soluciones digitales y académicas</span></div>
+  </header>
+  <h1>Gestograma</h1>
+  <p class="sub">Calcula la edad gestacional a la fecha que tú elijas.</p>
+
+  <svg class="wheel" id="wheel" viewBox="0 0 360 360" role="img" aria-label="Rueda gestacional"></svg>
+  <div class="legend">
+    <span><i style="background:var(--t1)"></i>1.er trimestre</span>
+    <span><i style="background:var(--t2)"></i>2.º trimestre</span>
+    <span><i style="background:var(--t3)"></i>3.er trimestre</span>
+  </div>
+
+  <div class="method" role="group" aria-label="Datar el embarazo por">
+    <button type="button" id="mFur" aria-pressed="true">Por FUR</button>
+    <button type="button" id="mUsg" aria-pressed="false">Por ultrasonido</button>
+  </div>
+
+  <div class="fields">
+    <div class="field" id="furBox">
+      <label for="fur">Fecha de última regla (FUR)</label>
+      <input type="date" id="fur">
+    </div>
+
+    <div class="field hidden" id="usgBox">
+      <label for="usgDate">Ultrasonido</label>
+      <span class="hint">Fecha del USG y la edad gestacional que reportó</span>
+      <input type="date" id="usgDate">
+      <div class="row">
+        <input type="number" id="usgW" min="4" max="42" inputmode="numeric" aria-label="Semanas por USG" placeholder="Sem">
+        <span class="unit">sem</span>
+        <input type="number" id="usgD" min="0" max="6" inputmode="numeric" aria-label="Días por USG" placeholder="Días">
+        <span class="unit">días</span>
+      </div>
+    </div>
+
+    <div class="field">
+      <label for="evalDate">Fecha de evaluación</label>
+      <span class="hint">Se llena sola con la fecha de hoy; puedes cambiarla.</span>
+      <div class="row">
+        <input type="date" id="evalDate">
+        <button type="button" class="btn" id="todayBtn">Hoy</button>
+      </div>
+      <div class="row" style="margin-top:6px">
+        <button type="button" class="btn" id="minus7">−1 sem</button>
+        <button type="button" class="btn" id="minus1">−1 día</button>
+        <button type="button" class="btn" id="plus1">+1 día</button>
+        <button type="button" class="btn" id="plus7">+1 sem</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="alert" class="alert hidden" role="status"></div>
+
+  <div id="out">
+    <div class="result">
+      <span class="big" id="egBig">–</span>
+      <span class="txt" id="egTxt">semanas de embarazo</span>
+    </div>
+
+    <dl class="data">
+      <div><dt>Fecha probable de parto</dt><dd id="fpp">–</dd></div>
+      <div id="furCalcRow" class="hidden"><dt>FUR calculada por USG</dt><dd id="furCalc">–</dd></div>
+      <div><dt>Trimestre</dt><dd id="tri">–</dd></div>
+      <div><dt id="faltaLbl">Faltan para la FPP</dt><dd id="falta">–</dd></div>
+      <div><dt>Clasificación</dt><dd id="clasif">–</dd></div>
+      <div><dt>Altura uterina esperada</dt><dd id="au">–</dd></div>
+      <div><dt>Talla fetal de referencia</dt><dd id="talla">–</dd></div>
+      <div><dt>Peso fetal de referencia</dt><dd id="peso">–</dd></div>
+    </dl>
+
+    <h2>Fechas clave de este embarazo</h2>
+    <ol class="timeline" id="timeline"></ol>
+  </div>
+
+  <p class="foot">Talla y peso son valores de referencia aproximados por semana completa (hasta la semana 19 se muestra longitud cráneo-rabadilla; desde la 20, talla total). Altura uterina orientativa entre las 20 y 36 semanas. La FPP se calcula con la regla de Naegele (FUR + 280 días). No sustituye el criterio clínico.</p>
+  <div class="signature">
+    <svg viewBox="0 0 48 48" aria-hidden="true"><rect x="1" y="1" width="46" height="46" rx="11" fill="#101E32" stroke="#27B7C8" stroke-width="2"/><text x="7" y="34" font-family="Atkinson Hyperlegible,system-ui,sans-serif" font-size="26" font-weight="700" fill="#FFFFFF">S</text><text x="23" y="34" font-family="Atkinson Hyperlegible,system-ui,sans-serif" font-size="26" font-weight="700" fill="#27B7C8">N</text></svg>
+    <span>Desarrollado por <b>Samynex</b>, soluciones digitales y académicas</span>
+  </div>
+</main>
+
+<script>
+(function(){
+  const DAY = 86400000;
+  const MESES = ["enero","febrero","marzo","abril","mayo","junio","julio","agosto","septiembre","octubre","noviembre","diciembre"];
+  const MES3 = ["ene","feb","mar","abr","may","jun","jul","ago","sep","oct","nov","dic"];
+
+  // Valores de referencia aproximados [talla cm, peso g] por semana completa
+  const REF = {8:[1.6,1],9:[2.3,2],10:[3.1,4],11:[4.1,7],12:[5.4,14],13:[7.4,23],14:[8.7,43],15:[10.1,70],
+    16:[11.6,100],17:[13,140],18:[14.2,190],19:[15.3,240],20:[25.6,300],21:[26.7,360],22:[27.8,430],
+    23:[28.9,501],24:[30,600],25:[34.6,660],26:[35.6,760],27:[36.6,875],28:[37.6,1005],29:[38.6,1153],
+    30:[39.9,1319],31:[41.1,1502],32:[42.4,1702],33:[43.7,1918],34:[45,2146],35:[46.2,2383],36:[47.4,2622],
+    37:[48.6,2859],38:[49.8,3083],39:[50.7,3288],40:[51.2,3462],41:[51.7,3597],42:[51.5,3685]};
+
+  const $ = id => document.getElementById(id);
+  const parse = v => { if(!v) return null; const [y,m,d] = v.split("-").map(Number); return Date.UTC(y,m-1,d); };
+  const toInput = t => new Date(t).toISOString().slice(0,10);
+  const fmt = t => { const d = new Date(t); return d.getUTCDate()+" de "+MESES[d.getUTCMonth()]+" de "+d.getUTCFullYear(); };
+  const fmtShort = t => { const d = new Date(t); return d.getUTCDate()+" "+MES3[d.getUTCMonth()]; };
+  const todayUTC = () => { const n = new Date(); return Date.UTC(n.getFullYear(), n.getMonth(), n.getDate()); };
+
+  let method = "fur";
+
+  // ---------- Rueda ----------
+  const C = 180, NS = "http://www.w3.org/2000/svg";
+  const ang = frac => frac*2*Math.PI - Math.PI/2;
+  const pt = (r,a) => [C + r*Math.cos(a), C + r*Math.sin(a)];
+  function arc(r1,r2,a1,a2){
+    const [x1,y1]=pt(r2,a1),[x2,y2]=pt(r2,a2),[x3,y3]=pt(r1,a2),[x4,y4]=pt(r1,a1);
+    const large = (a2-a1)>Math.PI?1:0;
+    return `M${x1} ${y1}A${r2} ${r2} 0 ${large} 1 ${x2} ${y2}L${x3} ${y3}A${r1} ${r1} 0 ${large} 0 ${x4} ${y4}Z`;
+  }
+  function el(tag, attrs, parent){ const e=document.createElementNS(NS,tag); for(const k in attrs) e.setAttribute(k,attrs[k]); (parent||svg).appendChild(e); return e; }
+  const svg = $("wheel");
+  const WEEKS = 42;
+
+  function drawStatic(){
+    svg.innerHTML = "";
+    el("circle",{cx:C,cy:C,r:176,fill:"var(--surface)",stroke:"var(--line)"});
+    for(let k=0;k<WEEKS;k++){
+      const fill = k<14 ? "var(--t1)" : k<28 ? "var(--t2)" : "var(--t3)";
+      el("path",{d:arc(98,136,ang(k/WEEKS)+0.004,ang((k+1)/WEEKS)-0.004),fill});
+    }
+    // franja de término 37-42
+    el("path",{d:arc(136,141,ang(37/WEEKS),ang(42/WEEKS)),fill:"var(--accent)",opacity:.55});
+    for(let k=1;k<=WEEKS;k++){
+      const a = ang((k-0.5)/WEEKS), [x,y] = pt(117,a);
+      const t = el("text",{x,y:y+3,"text-anchor":"middle",class:"wk"}); t.textContent = k;
+      if(k===40){ t.setAttribute("font-weight","700"); }
+    }
+    el("circle",{cx:C,cy:C,r:92,fill:"var(--ring)"});
+    el("path",{id:"prog",d:"",fill:"var(--accent)",opacity:.85});
+    el("circle",{cx:C,cy:C,r:82,fill:"var(--surface)"});
+    el("g",{id:"dates"});
+    const g = el("g",{id:"pointer",class:"pointer"});
+    el("line",{x1:C,y1:C-84,x2:C,y2:C-150,stroke:"var(--accent)","stroke-width":3,"stroke-linecap":"round"},g);
+    el("circle",{cx:C,cy:C-150,r:5,fill:"var(--accent)"},g);
+    const t1 = el("text",{x:C,y:C+6,"text-anchor":"middle",class:"center-eg",id:"cEG"}); t1.textContent="–";
+    const t2 = el("text",{x:C,y:C+26,"text-anchor":"middle",class:"center-lbl",id:"cLbl"}); t2.textContent="semanas";
+  }
+
+  function drawDynamic(fur, days){
+    const g = $("dates"); g.innerHTML="";
+    if(fur!=null){
+      for(let k=0;k<WEEKS;k+=2){
+        const a = ang(k/WEEKS), [x,y] = pt(158,a);
+        const anchor = Math.abs(x-C)<12 ? "middle" : (x>C ? "start" : "end");
+        const t = el("text",{x,y:y+3,"text-anchor":anchor,class:"dt"},g);
+        t.textContent = fmtShort(fur + k*7*DAY);
+        el("line",(()=>{const [a1,b1]=pt(141,a),[a2,b2]=pt(148,a);return{x1:a1,y1:b1,x2:a2,y2:b2,stroke:"var(--line)"}})(),g);
+      }
+    }
+    const prog = $("prog"), ptr = $("pointer");
+    if(days==null || days<0){ prog.setAttribute("d",""); ptr.style.opacity=0; $("cEG").textContent="–"; return; }
+    const frac = Math.min(days/(WEEKS*7), 0.9999);
+    prog.setAttribute("d", frac>0 ? arc(84,92,ang(0),ang(frac)) : "");
+    ptr.style.opacity=1;
+    ptr.style.transform = `rotate(${frac*360}deg)`;
+    $("cEG").textContent = Math.floor(days/7)+"+"+(days%7);
+  }
+
+  // ---------- Cálculo ----------
+  function getFur(){
+    if(method==="fur") return parse($("fur").value);
+    const u = parse($("usgDate").value);
+    const w = parseInt($("usgW").value,10), d = parseInt($("usgD").value||"0",10);
+    if(u==null || isNaN(w)) return null;
+    if(d<0||d>6||w<0) return null;
+    return u - (w*7+d)*DAY;
+  }
+
+  function showAlert(msg){ const a=$("alert"); if(msg){a.textContent=msg;a.classList.remove("hidden");} else a.classList.add("hidden"); }
+
+  function plural(n,s,p){ return n+" "+(n===1?s:p); }
+  function durText(days){
+    const w=Math.floor(days/7), d=days%7, parts=[];
+    if(w) parts.push(plural(w,"semana","semanas"));
+    if(d||!w) parts.push(plural(d,"día","días"));
+    return parts.join(" y ");
+  }
+
+  function update(){
+    const fur = getFur();
+    const ev = parse($("evalDate").value);
+    $("furCalcRow").classList.toggle("hidden", method!=="usg" || fur==null);
+    if(fur!=null && method==="usg") $("furCalc").textContent = fmt(fur);
+
+    if(fur==null){
+      showAlert(method==="fur" ? "Ingresa la FUR para calcular." : "Ingresa la fecha del ultrasonido y las semanas que reportó.");
+      clearOut(); drawDynamic(null,null); return;
+    }
+    if(ev==null){ showAlert("Ingresa la fecha de evaluación."); clearOut(); drawDynamic(fur,null); return; }
+
+    const days = Math.round((ev-fur)/DAY);
+    const fpp = fur + 280*DAY;
+    $("fpp").textContent = fmt(fpp);
+
+    if(days<0){
+      showAlert("La fecha de evaluación es anterior a la FUR. Revisa las fechas.");
+      clearOut(true); drawDynamic(fur,null); return;
+    }
+    showAlert(days>44*7 ? "La edad gestacional pasa de 44 semanas. Verifica la FUR o la fecha de evaluación." : "");
+
+    const w = Math.floor(days/7), d = days%7;
+    $("egBig").textContent = w+"+"+d;
+    $("egTxt").textContent = "semanas de embarazo al "+fmt(ev);
+
+    $("tri").textContent = w<14 ? "Primero" : w<28 ? "Segundo" : "Tercero";
+
+    const rest = 280-days;
+    if(rest>0){ $("faltaLbl").textContent="Faltan para la FPP"; $("falta").textContent=durText(rest); }
+    else if(rest===0){ $("faltaLbl").textContent="FPP"; $("falta").textContent="Es hoy"; }
+    else { $("faltaLbl").textContent="Pasada la FPP por"; $("falta").textContent=durText(-rest); }
+
+    $("clasif").textContent = w<22 ? "Antes de la viabilidad" : w<37 ? "Pretérmino" : w<42 ? "A término" : "Postérmino";
+
+    $("au").textContent = (w>=20 && w<=36) ? (w-2)+" a "+(w+2)+" cm" : "No aplica";
+
+    const r = REF[Math.min(w,42)];
+    $("talla").textContent = r ? r[0].toLocaleString("es-GT")+" cm" : "No aplica";
+    $("peso").textContent = r ? (r[1]>=1000 ? r[1].toLocaleString("es-GT") : r[1])+" g" : "No aplica";
+
+    drawDynamic(fur, days);
+    drawTimeline(fur, days);
+  }
+
+  function clearOut(keepFpp){
+    $("egBig").textContent="–"; $("egTxt").textContent="semanas de embarazo";
+    if(!keepFpp) $("fpp").textContent="–";
+    ["tri","falta","clasif","au","talla","peso"].forEach(id=>$(id).textContent="–");
+    $("timeline").innerHTML="";
+  }
+
+  const HITOS = [
+    [12,"Fin del primer trimestre (12 sem)"],
+    [20,"Mitad del embarazo (20 sem)"],
+    [22,"Límite de viabilidad (22 sem)"],
+    [28,"Inicio del tercer trimestre (28 sem)"],
+    [37,"Embarazo a término (37 sem)"],
+    [40,"Fecha probable de parto (40 sem)"],
+    [42,"Postérmino (42 sem)"]
+  ];
+  function drawTimeline(fur, days){
+    const ol = $("timeline"); ol.innerHTML="";
+    let nowMarked = false;
+    HITOS.forEach(([wk,label])=>{
+      const li = document.createElement("li");
+      const target = wk*7;
+      if(days>=target) li.className="done";
+      else if(!nowMarked){ li.className="now"; nowMarked=true; }
+      li.innerHTML = "<b></b><span></span>";
+      li.querySelector("b").textContent = label;
+      li.querySelector("span").textContent = fmt(fur+target*DAY);
+      ol.appendChild(li);
+    });
+  }
+
+  // ---------- Eventos ----------
+  function setMethod(m){
+    method = m;
+    $("mFur").setAttribute("aria-pressed", m==="fur");
+    $("mUsg").setAttribute("aria-pressed", m==="usg");
+    $("furBox").classList.toggle("hidden", m!=="fur");
+    $("usgBox").classList.toggle("hidden", m!=="usg");
+    update();
+  }
+  function shiftEval(n){
+    const ev = parse($("evalDate").value) ?? todayUTC();
+    $("evalDate").value = toInput(ev + n*DAY); update();
+  }
+
+  $("mFur").onclick = ()=>setMethod("fur");
+  $("mUsg").onclick = ()=>setMethod("usg");
+  $("todayBtn").onclick = ()=>{ $("evalDate").value = toInput(todayUTC()); update(); };
+  $("minus7").onclick = ()=>shiftEval(-7);
+  $("minus1").onclick = ()=>shiftEval(-1);
+  $("plus1").onclick = ()=>shiftEval(1);
+  $("plus7").onclick = ()=>shiftEval(7);
+  ["fur","usgDate","usgW","usgD","evalDate"].forEach(id=>$(id).addEventListener("input", update));
+
+  // ---------- Inicio ----------
+  drawStatic();
+  $("evalDate").value = toInput(todayUTC());
+  update();
+})();
+</script>
+<script>
+if ("serviceWorker" in navigator) { window.addEventListener("load", () => navigator.serviceWorker.register("sw.js").catch(()=>{})); }
+</script>
+</body>
+</html>
